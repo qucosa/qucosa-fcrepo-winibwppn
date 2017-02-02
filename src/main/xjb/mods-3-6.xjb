@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017 Saxon State and University Library Dresden (SLUB)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<jxb:bindings version="1.0"
+              xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+              xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc">
+
+    <jxb:bindings schemaLocation="../xsd/mods-3-6.xsd" node="//xsd:schema">
+        <jxb:bindings node="//xsd:complexType[@name='abstractDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfAbstract"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='accessConditionDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfAccessDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='physicalLocationDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfPhysicalLocationDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='nameDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfNameDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='noteDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfNoteDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='relatedItemDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfRelatedItemDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='tableOfContentsDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfTableOfContentsDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='titleInfoDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfTitleInfoDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='physicalDescriptionNote']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfPhysicalDescriptionNote"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='subjectTitleInfoDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfSubjectTitleInfoDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='subjectNameDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfSubjectNameDefinition"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xsd:complexType[@name='copyInformationDefinition']//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfCopyInformationDefinition"/>
+        </jxb:bindings>
+
+        <jxb:bindings node="//xsd:element[@name='text']/xsd:complexType//xsd:attribute[@name='type']">
+            <jxb:property name="typeOfText"/>
+        </jxb:bindings>
+
+        <jxb:bindings node="//xsd:attributeGroup[@name='languageAttributeGroup']//xsd:attribute[@name='lang']">
+            <jxb:property name="attributeGroupLanguage"/>
+        </jxb:bindings>
+    </jxb:bindings>
+
+</jxb:bindings>
