@@ -18,6 +18,13 @@ package de.qucosa.winibwppn;
 
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +34,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+
 public class PPNRegistrationServlet extends HttpServlet {
 
     final private Logger log = LoggerFactory.getLogger(PPNRegistrationServlet.class);
@@ -34,22 +47,72 @@ public class PPNRegistrationServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
+        log.info("PPN registration startup finished");
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    public void destroy() {
+        super.destroy();
+        log.info("PPN registration shutdown complete");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        CloseableHttpClient closableHttpClient = null;
         try {
-            URN urn = URN.fromString(req.getParameter("urn"));
-            PPN ppn = PPN.fromString(req.getParameter("ppn"));
-            resp.setStatus(HttpServletResponse.SC_ACCEPTED);
-            resp.getWriter().print(String.format("Ok, fine. I'll register PPN `%s` for object `%s`.", ppn, urn));
+            URN urn = URN.fromString(request.getParameter("urn"));
+            PPN ppn = PPN.fromString(request.getParameter("ppn"));
+
+            FedoraConnectionParameters params = FedoraConnectionParameters.from(request, getServletContext());
+            String hostUrl = params.getFedoraHostUrl();
+            String username = params.getCredentials().getUsername();
+            String password = params.getCredentials().getPassword();
+
+            log.debug(String.format("Connecting to %s as %s", hostUrl, username));
+
+            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+
+            closableHttpClient = HttpClientBuilder.create()
+                    .setConnectionManager(new PoolingHttpClientConnectionManager())
+                    .setDefaultCredentialsProvider(credentialsProvider)
+                    .build();
+
+            FedoraAPIAccess fedoraAPIAccess = new FedoraAPIAccess(hostUrl, closableHttpClient);
+
+            log.debug(String.format("Registering PPN %s for object with PID %s", urn, ppn));
+
+            PPNRegistrationAgent ppnRegistrationAgent = new PPNRegistrationAgent(fedoraAPIAccess);
+            ppnRegistrationAgent.registerPPN(urn, ppn);
+
+            log.debug(String.format("PPN %s registered for object with PID %s", urn, ppn));
         } catch (URNSyntaxException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print("URN Parameter fehlt oder ist inkorrekt");
+            respond(response, SC_BAD_REQUEST, "URN Parameter fehlt oder ist inkorrekt");
         } catch (PPNSyntaxException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print("PPN Parameter fehlt oder ist inkorrekt");
+            respond(response, SC_BAD_REQUEST, "PPN Parameter fehlt oder ist inkorrekt");
+        } catch (CannotResolveIdentifier e) {
+            respond(response, SC_NOT_FOUND, "Angegebene URN kann nicht gefunden werden");
+        } catch (MissingRequiredParameter e) {
+            respondAndLog(response, SC_NOT_ACCEPTABLE, "PPN Dienst ist nicht ausreichend konfiguriert", e);
+        } catch (AuthenticationException e) {
+            respondAndLog(response, SC_FORBIDDEN, "PPN Dienst ist nicht ausreichend autorisiert", e);
+        } catch (RegistrationException e) {
+            respondAndLog(response, SC_INTERNAL_SERVER_ERROR, "Fehler beim registrieren der PPN", e);
+        } finally {
+            if (closableHttpClient != null) {
+                closableHttpClient.close();
+            }
         }
+    }
+
+    private void respondAndLog(HttpServletResponse response, int statusCode, String message, Exception e) throws IOException {
+        log.error(e.getMessage());
+        respond(response, statusCode, message);
+    }
+
+    private void respond(HttpServletResponse servletResponse, int statusCode, String message) throws IOException {
+        servletResponse.setStatus(statusCode);
+        servletResponse.getWriter().print(message);
     }
 
 }

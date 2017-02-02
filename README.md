@@ -35,7 +35,7 @@ production environments.
 
 To change the default values override the context variable in the web application context configuration of the servlet
 container in which the webservice is deployed. For Tomcat use the `<Context>` element within the [Context Container
-configuration](http://tomcat.apache.org/tomcat-7.0-doc/config/context.html), e.g.:
+Configuration](http://tomcat.apache.org/tomcat-7.0-doc/config/context.html), e.g.:
 
 ```xml
 <Context>
@@ -44,7 +44,7 @@ configuration](http://tomcat.apache.org/tomcat-7.0-doc/config/context.html), e.g
 </Context>
 ```
 
-Ironically, if you want to override the defaults, you need to set the `override` attribute to `false` to avoid getting your configuration "overridden" by the defaults of the web application.
+Ironically, if you want to override the defaults, you need to set the `override` attribute to `false` to avoid getting your fedoraConfiguration "overridden" by the defaults of the web application.
 
 ## Submitting Fedora credentials via HTTP BasicAuth
 
@@ -56,4 +56,3 @@ repository server, e.g.:
 # Licence
 
 The program is licenced under [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-
