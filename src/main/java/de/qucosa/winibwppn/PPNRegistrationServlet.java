@@ -34,7 +34,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static de.qucosa.winibwppn.PPNRegistrationAgent.PPNCardinality.MULTIPLE;
+import static de.qucosa.winibwppn.PPNRegistrationAgent.PPNCardinality.SINGLE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
@@ -82,8 +85,15 @@ public class PPNRegistrationServlet extends HttpServlet {
 
             log.debug(String.format("Registering PPN %s for object with PID %s", urn, ppn));
 
+            PPNRegistrationAgent.PPNCardinality cardinality = SINGLE;
+            String ppnCardinality = getServletContext().getInitParameter("ppn.cardinality");
+            if (MULTIPLE.name().equalsIgnoreCase(ppnCardinality)) {
+                log.debug("Allow multiple PPNs");
+                cardinality = MULTIPLE;
+            }
+
             PPNRegistrationAgent ppnRegistrationAgent = new PPNRegistrationAgent(fedoraAPIAccess);
-            ppnRegistrationAgent.registerPPN(urn, ppn);
+            ppnRegistrationAgent.registerPPN(urn, ppn, cardinality);
 
             log.debug(String.format("PPN %s registered for object with PID %s", urn, ppn));
         } catch (URNSyntaxException e) {
@@ -98,6 +108,8 @@ public class PPNRegistrationServlet extends HttpServlet {
             respondAndLog(response, SC_FORBIDDEN, "PPN Dienst ist nicht ausreichend autorisiert", e);
         } catch (RegistrationException e) {
             respondAndLog(response, SC_INTERNAL_SERVER_ERROR, "Fehler beim registrieren der PPN", e);
+        } catch (MultipleIdentifiersNotAllowed e) {
+            respond(response, SC_CONFLICT, "Kann nicht mehrere PPNs registrieren");
         } finally {
             if (closableHttpClient != null) {
                 closableHttpClient.close();

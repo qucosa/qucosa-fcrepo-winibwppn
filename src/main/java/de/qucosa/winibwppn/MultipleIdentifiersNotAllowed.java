@@ -16,12 +16,5 @@
 
 package de.qucosa.winibwppn;
 
-class CannotResolveIdentifier extends Exception {
-    CannotResolveIdentifier(String msg) {
-        super(msg);
-    }
-
-    CannotResolveIdentifier(String msg, Exception cause) {
-        super(msg, cause);
-    }
+class MultipleIdentifiersNotAllowed extends Exception {
 }

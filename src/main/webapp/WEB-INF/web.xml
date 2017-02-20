@@ -42,6 +42,17 @@
         <param-value>fedoraAdmin:fedoraAdmin</param-value>
     </context-param>
 
+    <!--
+        Determine if multiple PPNs can be registered. Default: `single`.
+
+        Anything else than `multiple` will lead to an 409 CONFLICT reponse if the requested resource
+        already has a PPN.
+    -->
+    <context-param>
+        <param-name>ppn.cardinality</param-name>
+        <param-value>multiple</param-value>
+    </context-param>
+
     <servlet>
         <servlet-name>PPNRegistrationServlet</servlet-name>
         <servlet-class>de.qucosa.winibwppn.PPNRegistrationServlet</servlet-class>

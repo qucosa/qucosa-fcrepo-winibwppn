@@ -39,12 +39,14 @@ class PPNRegistrationAgent {
         this.fedoraAPIAccess = fedoraAPIAccess;
     }
 
-    void registerPPN(URN urn, PPN ppn) throws RegistrationException, CannotResolveIdentifier {
+    void registerPPN(URN urn, PPN ppn, PPNCardinality cardinality)
+            throws RegistrationException, CannotResolveIdentifier, MultipleIdentifiersNotAllowed {
+
         String pid = fedoraAPIAccess.resolveIdentifier(urn);
 
         try {
             String mods = fedoraAPIAccess.getDatastreamDissemination(pid, "MODS");
-            String updatedMods = addPPN(mods, ppn);
+            String updatedMods = addPPN(mods, ppn, cardinality);
             if (updatedMods != null) {
                 fedoraAPIAccess.modifyDatastream(pid, "MODS", new ByteArrayInputStream(updatedMods.getBytes()));
             }
@@ -54,7 +56,9 @@ class PPNRegistrationAgent {
 
     }
 
-    private String addPPN(String mods, PPN ppn) throws IOException, JAXBException {
+    private String addPPN(String mods, PPN ppn, PPNCardinality cardinality)
+            throws IOException, JAXBException, MultipleIdentifiersNotAllowed {
+
         // FIXME Working with XJC and MODS schema is an impossible task.
         // I've no idea how any of this works. It should, in principle, parse the MODS
         // XML, look for identifier elements and add an identifier element if needed.
@@ -72,9 +76,12 @@ class PPNRegistrationAgent {
         for (Object o : serializables) {
             if (o instanceof IdentifierDefinition) {
                 IdentifierDefinition identifierDefinition = (IdentifierDefinition) o;
-                if ("swb-ppn".equals(identifierDefinition.getType()) &&
-                        ppnString.equals(identifierDefinition.getValue())) {
-                    return null;
+                if ("swb-ppn".equals(identifierDefinition.getType())) {
+                    if (cardinality.equals(PPNCardinality.SINGLE)) {
+                        throw new MultipleIdentifiersNotAllowed();
+                    }
+
+                    if (ppnString.equals(identifierDefinition.getValue())) return null;
                 }
             }
         }
@@ -92,6 +99,10 @@ class PPNRegistrationAgent {
         StringWriter sw = new StringWriter();
         marshaller.marshal(root, sw);
         return sw.toString();
+    }
+
+    enum PPNCardinality {
+        MULTIPLE, SINGLE
     }
 
 }

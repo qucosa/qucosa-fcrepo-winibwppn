@@ -20,8 +20,4 @@ class RegistrationException extends Exception {
     RegistrationException(Exception e) {
         super(e);
     }
-
-    public RegistrationException(String msg) {
-        super(msg);
-    }
 }
