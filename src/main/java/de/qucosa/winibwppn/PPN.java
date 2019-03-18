@@ -36,7 +36,7 @@ public class PPN {
 
     private static boolean isValidPPN(String s) {
         // FIXME Find out how to really validate PPNs
-        return (s.length() == 8) || (s.length() == 9);
+        return (s.length() >= 8) && (s.length() <= 10);
     }
 
 }
